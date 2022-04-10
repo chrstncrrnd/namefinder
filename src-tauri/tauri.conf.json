@@ -49,7 +49,11 @@
       "active": false
     },
     "allowlist": {
-      "all": true
+      "all": true,
+      "http": {
+        "all": true, 
+        "request": true
+      }
     },
     "windows": [
       {

@@ -1,21 +1,25 @@
-
 #[tauri::command]
-fn first_command() {
-  println!("Hello, world!")
+fn log(a: String){
+  println!("{}", a);
 }
 
-fn is_name_available(name: String){
-  if name.len() < 4{
-    println!("Error, {} is too short", name);
+#[tauri::command]
+async fn is_name_available(name: String) -> bool{
+  let request = reqwest::get(format!("https://api.mojang.com/users/profiles/minecraft/{}", name)).await.unwrap();
+  let json = request.text().await.unwrap();
+  if json.is_empty(){
+    // return name is available true
+    return true
   }
-  else if name.len() > 16{
-    println!("Error, {} is too long", name)
+  else{
+    return false
   }
+
 }
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![first_command])
+    .invoke_handler(tauri::generate_handler![log, is_name_available])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
