@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { invoke } from '@tauri-apps/api';
-import { Alert, BottomNavigation, Button, Container, createTheme, Icon, List, ListItem, Snackbar, TextField } from '@mui/material';
-import { Box, palette } from '@mui/system';
+import {
+  Alert, Box,
+  Button,
+  CircularProgress,
+  Container,
+  createTheme,
+  Divider,
+  List,
+  ListItem,
+  Modal,
+  Snackbar,
+  Stack,
+  TextField, Typography
+} from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
+import CloseIcon from '@mui/icons-material/Close';
+import {Add} from "@mui/icons-material";
 
 
 // normal console.log doesn't log to terminal but to within tauri
 // this just logs via rust
 const log = (a: any) => {
-  const word = a as string;
+  const word: string = a.toString();
 
   invoke("log", {a: word})
 }
@@ -24,8 +37,22 @@ type BadNameNotif = {
 function App() {
   const [names, setNames] = useState<string[]>([]);
   const [name, setName] = useState<string>("");
+
   const [badNameNotif, setBadNameNotif] = useState<BadNameNotif>({open: false, reason: ""});
 
+  const [resultModalOpen, setResultModalOpen] = useState<boolean>(false);
+
+  const [results, setResults] = useState<string[]>([]);
+  
+  const [loading, setLoading] = useState<boolean>(false);
+
+
+  const run = async () => {
+    setLoading(true);
+    setResultModalOpen(true);
+    setResults(await invoke("run", {names: names}));
+    setLoading(false);
+  }
 
   const addName = () => {
     if(name.length < 4){
@@ -40,6 +67,7 @@ function App() {
     else{
       setNames(state => [name, ...state as string[]]);
     }
+    setName("");
   }
 
   const clearNames = () => {
@@ -61,38 +89,70 @@ function App() {
   })
 
   return (
-    <ThemeProvider theme={theme}>
-      <Box textAlign="center" className="container">
-        <TextField label="Input a name:" variant='standard' onChange={(event) => {setName(event.target.value)}} />
-        <Button variant='text' onClick={addName} >
-          add
-        </Button>
-      </Box>
-      <Box display="flex" alignItems="center" flexDirection="column">
-        <List className="namesList">
+    <ThemeProvider theme={theme} >
+      <Container className="container" style={{marginTop: 20}}>
+
+
+        <Stack direction="row" spacing={3}>
+          <TextField label="Input a name:" variant='outlined' size='small' onChange={(event) => {setName(event.target.value)}} value={name} />
+          <Button variant='outlined' onClick={addName} disabled={name.length === 0}>
+            <Add color="inherit"/>
+          </Button>
+          <Divider orientation='vertical' flexItem/>
+          <Button color='success' variant='contained' disabled={names.length === 0} onClick={run}>
+            Run
+          </Button>
+        </Stack>
+
+
+
+        <List className="namesList" >
           {
             names.map((n, key) => {
               return (
-                <ListItem className="namesListItem" key={key}>
-                  {n}
-                  <Button style={{margin: 10}} variant='outlined' size='small' color='error' onClick={() => {removeName(key)}}>Remove</Button>
-                </ListItem>
+                <Stack direction="row" className="namesListItem">
+                  <ListItem style={{color: "lightgray"}} key={key} divider>
+                    {n}
+                  </ListItem>
+                  <Button variant='text' size='small' color='error' onClick={() => {removeName(key)}}><CloseIcon color="error" fontSize="small"/></Button>
+                </Stack>
               )
             })
           }
         </List>
+
+
         <Button className='clearButton' variant='contained' color="error" onClick={clearNames} disabled={names.length === 0}>
           Clear
         </Button>
-      </Box>
 
-      <Snackbar open={badNameNotif.open} autoHideDuration={2000} onClose={() => {setBadNameNotif({open: false, reason: ""})}}> 
-          <Alert severity="error" sx={{ width: '100%' }}>
-            {
-              badNameNotif.reason
-            }
-          </Alert>
-      </Snackbar>
+
+        <Snackbar open={badNameNotif.open} autoHideDuration={2000} onClose={() => {setBadNameNotif({open: false, reason: ""})}}> 
+            <Alert severity="error" sx={{ width: '100%' }}>
+              {
+                badNameNotif.reason
+              }
+            </Alert>
+        </Snackbar>
+
+        <Modal open={resultModalOpen}
+               onClose={() => setResultModalOpen(false)}>
+          <Container>
+            <List>
+              {
+                results.map(
+                    (result, key) => {
+                      return (<Typography fontSize={40} color={"#fff"}>{result}</Typography>)
+                    }
+                )
+              }
+            </List>
+          </Container>
+        </Modal>
+        
+        <CircularProgress aria-busy={loading}/>
+
+      </Container>
     </ThemeProvider>
   );
 }
