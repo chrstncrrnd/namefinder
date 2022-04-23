@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import { invoke } from '@tauri-apps/api';
 import {
-  Alert, Box,
+  Alert,
   Button,
   CircularProgress,
   Container,
@@ -13,7 +13,7 @@ import {
   Modal,
   Snackbar,
   Stack,
-  TextField, Typography
+  TextField
 } from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
 import CloseIcon from '@mui/icons-material/Close';
@@ -137,21 +137,21 @@ function App() {
 
         <Modal open={resultModalOpen}
                onClose={() => setResultModalOpen(false)}>
-          <Container>
-            <List>
-              {
-                results.map(
-                    (result, key) => {
-                      return (<Typography fontSize={40} color={"#fff"}>{result}</Typography>)
-                    }
-                )
-              }
-            </List>
+          <Container style={{backgroundColor: "#0f0f0f", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center"}}>
+            {
+              loading ? <CircularProgress/> :
+                <List>
+                  {
+                    results.map(
+                        (result, key) => {
+                          return (<ListItem style={{color: "lightgray"}} key={key} divider>{result}</ListItem>)
+                        }
+                    )
+                  }
+                </List>
+            }
           </Container>
         </Modal>
-        
-        <CircularProgress aria-busy={loading}/>
-
       </Container>
     </ThemeProvider>
   );

@@ -1,3 +1,6 @@
+use std::ops::Index;
+use futures::future::join_all;
+
 #[tauri::command]
 fn log(a: String){
   println!("{}", a);
@@ -6,20 +9,28 @@ fn log(a: String){
 async fn is_name_available(name: &String) -> bool{
   let request = reqwest::get(format!("https://api.mojang.com/users/profiles/minecraft/{}", *name)).await.unwrap();
   let json = request.text().await.unwrap();
-  return json.is_empty();
+  let result = json.is_empty();
+  println!("name: {} is {}", name, result);
+  result
 
 }
+
 #[tauri::command]
 async fn run(names: Vec<String>) -> Vec<String>{
-  let mut out: Vec<String> = Vec::new();
-  for name in names.iter(){
-    if is_name_available(name).await{
-      out.push(name.clone());
+  let inputs = names.iter().map(|n| is_name_available(n));
+
+  let bool_outputs = join_all(inputs).await;
+
+  let mut output = Vec::new();
+
+  for (index, item) in names.into_iter().enumerate(){
+    if bool_outputs[index]{
+      output.push(item)
     }
   }
-  out
-}
 
+  output
+}
 
 fn main() {
   tauri::Builder::default()
