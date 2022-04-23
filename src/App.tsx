@@ -3,21 +3,21 @@ import './App.css';
 import { invoke } from '@tauri-apps/api';
 import {
   Alert,
-  Button,
+  Button, Card,
   CircularProgress,
   Container,
   createTheme,
   Divider,
   List,
-  ListItem,
+  ListItem, ListItemText,
   Modal,
   Snackbar,
   Stack,
-  TextField
+  TextField, Typography
 } from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
 import CloseIcon from '@mui/icons-material/Close';
-import {Add} from "@mui/icons-material";
+import {Add, Title} from "@mui/icons-material";
 
 
 // normal console.log doesn't log to terminal but to within tauri
@@ -56,9 +56,9 @@ function App() {
 
   const addName = () => {
     if(name.length < 4){
-      setBadNameNotif({open: true, reason: "Invalid name, name too short!"});
+      setBadNameNotif({open: true, reason: "Invalid name, too short!"});
     }else if (name.length > 16){
-      setBadNameNotif({open: true, reason: "Invalid name, name too long!"});
+      setBadNameNotif({open: true, reason: "Invalid name, too long!"});
     }else if (!(/^\w+$/i.test(name))){
       setBadNameNotif({open: true, reason: "Invalid name, wrong characters!"});
     }else if(names.includes(name)){
@@ -137,20 +137,22 @@ function App() {
 
         <Modal open={resultModalOpen}
                onClose={() => setResultModalOpen(false)}>
-          <Container style={{backgroundColor: "#0f0f0f", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center"}}>
+
+          <Card style={{display: "flex", alignItems: "center", justifyContent: "center", width: "100%"}}>
             {
               loading ? <CircularProgress/> :
-                <List>
+                <List >
+                  <Typography color={"#fff"} fontWeight={"bold"}>Names not taken:</Typography>
                   {
                     results.map(
                         (result, key) => {
-                          return (<ListItem style={{color: "lightgray"}} key={key} divider>{result}</ListItem>)
+                          return (<ListItemText style={{color: "lightgray"}} key={key}>{result}</ListItemText>)
                         }
                     )
                   }
                 </List>
             }
-          </Container>
+          </Card>
         </Modal>
       </Container>
     </ThemeProvider>

@@ -10,9 +10,7 @@ async fn is_name_available(name: &String) -> bool{
   let request = reqwest::get(format!("https://api.mojang.com/users/profiles/minecraft/{}", *name)).await.unwrap();
   let json = request.text().await.unwrap();
   let result = json.is_empty();
-  println!("name: {} is {}", name, result);
   result
-
 }
 
 #[tauri::command]
@@ -23,6 +21,7 @@ async fn run(names: Vec<String>) -> Vec<String>{
 
   let mut output = Vec::new();
 
+  // tried using something better like .filter but it was a pain to get working
   for (index, item) in names.into_iter().enumerate(){
     if bool_outputs[index]{
       output.push(item)
